@@ -1,0 +1,271 @@
+{
+  "version": "2.0",
+  "project": "LataleEditorTools",
+  "workflowPreset": "standard",
+  "scaleEnginePreset": "standard",
+  "currentPhase": "plan",
+  "currentTier": "standard",
+  "workflowMode": "standard",
+  "requiresHumanReview": false,
+  "rollbackRequired": false,
+  "phaseHistory": [],
+  "gates": {
+    "G0": {
+      "status": "skipped",
+      "verifiedAt": null
+    },
+    "G1": {
+      "status": "skipped",
+      "verifiedAt": null
+    },
+    "G2": {
+      "status": "pending",
+      "verifiedAt": null
+    },
+    "G3": {
+      "status": "skipped",
+      "verifiedAt": null
+    },
+    "G4": {
+      "status": "pending",
+      "verifiedAt": null
+    },
+    "G5": {
+      "status": "pending",
+      "verifiedAt": null
+    },
+    "G6": {
+      "status": "pending",
+      "verifiedAt": null
+    },
+    "G7": {
+      "status": "skipped",
+      "verifiedAt": null
+    }
+  },
+  "detectors": {
+    "BruteRetry": {
+      "enabled": true
+    },
+    "IdleTool": {
+      "enabled": true
+    },
+    "BusyLoop": {
+      "enabled": false
+    },
+    "PrematureDone": {
+      "enabled": true
+    },
+    "BlameShift": {
+      "enabled": true
+    },
+    "Hallucination": {
+      "enabled": true
+    },
+    "ScopeCreep": {
+      "enabled": false
+    },
+    "CircularEdit": {
+      "enabled": false
+    },
+    "SilentFail": {
+      "enabled": true
+    }
+  },
+  "metrics": {
+    "tasksCompleted": 0,
+    "gatesPassed": 0,
+    "gatesFailed": 0,
+    "avgPhaseDuration": {}
+  },
+  "tierConfig": {
+    "express": {
+      "id": "sandbox",
+      "tier": "express",
+      "description": "Fast low-risk change flow with minimal verification gates.",
+      "flow": [
+        "fix",
+        "verify"
+      ],
+      "gates": [
+        "G4",
+        "G5"
+      ],
+      "requiresHumanReview": false,
+      "rollbackRequired": false
+    },
+    "standard": {
+      "id": "standard",
+      "tier": "standard",
+      "description": "Default planning and verification flow for normal delivery.",
+      "flow": [
+        "plan",
+        "execute",
+        "verify"
+      ],
+      "gates": [
+        "G2",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "requiresHumanReview": false,
+      "rollbackRequired": false
+    },
+    "full": {
+      "id": "feature",
+      "tier": "full",
+      "description": "Feature flow with discovery, planning, execution, verification, and handoff.",
+      "flow": [
+        "explore",
+        "plan",
+        "execute",
+        "verify",
+        "consolidate"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "requiresHumanReview": false,
+      "rollbackRequired": false
+    },
+    "critical": {
+      "id": "critical",
+      "tier": "critical",
+      "description": "High-risk delivery flow with exploration, review, security, and consolidation.",
+      "flow": [
+        "explore",
+        "plan",
+        "review",
+        "execute",
+        "verify",
+        "security",
+        "consolidate"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7"
+      ],
+      "requiresHumanReview": true,
+      "rollbackRequired": false
+    }
+  },
+  "taskWorkflows": {
+    "bugfix": {
+      "id": "bugfix",
+      "tier": "standard",
+      "description": "Bugfix flow that starts from reproduction before patching.",
+      "flow": [
+        "reproduce",
+        "fix",
+        "verify",
+        "consolidate"
+      ],
+      "gates": [
+        "G1",
+        "G4",
+        "G5"
+      ],
+      "requiresHumanReview": false,
+      "rollbackRequired": false
+    },
+    "feature": {
+      "id": "feature",
+      "tier": "full",
+      "description": "Feature flow with discovery, planning, execution, verification, and handoff.",
+      "flow": [
+        "explore",
+        "plan",
+        "execute",
+        "verify",
+        "consolidate"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "requiresHumanReview": false,
+      "rollbackRequired": false
+    },
+    "refactor": {
+      "id": "refactor",
+      "tier": "full",
+      "description": "Refactor flow focused on baseline capture and regression-safe verification.",
+      "flow": [
+        "explore",
+        "plan",
+        "execute",
+        "verify",
+        "consolidate"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "requiresHumanReview": false,
+      "rollbackRequired": false
+    },
+    "migration": {
+      "id": "migration",
+      "tier": "critical",
+      "description": "Migration flow with backup, rollback evidence, and human review.",
+      "flow": [
+        "explore",
+        "plan",
+        "backup",
+        "execute",
+        "verify",
+        "rollback-test"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G4",
+        "G5",
+        "G7"
+      ],
+      "requiresHumanReview": true,
+      "rollbackRequired": true
+    },
+    "securityPatch": {
+      "id": "security-patch",
+      "tier": "critical",
+      "description": "Security patch flow that requires reproduction, verification, security checks, and review.",
+      "flow": [
+        "reproduce",
+        "plan",
+        "fix",
+        "verify",
+        "security",
+        "consolidate"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G7"
+      ],
+      "requiresHumanReview": true,
+      "rollbackRequired": false
+    }
+  }
+}

@@ -1,0 +1,96 @@
+LDT Editor — Agent 速查（纯文本，随实现更新）
+================================================================================
+
+[阅读] 先读本节 [摘要] → 按需 [配置]、[主程序]、[选图]、[预览]、[路线/问题]。发布/L0–L6 → 同目录 LdtEditor_launch_memory.txt（勿混写）。
+
+[摘要 — 2026-05-27]
+  · WinForms 编辑 LaTale LDT；主逻辑 Program.cs（MainForm、FilterToolForm）、ItemPreviewFloatForm。
+  · 数据目录 %LocalAppData%\LdtEditor\：editor-settings.json、filter-tool-state.json、recent-files.json（UTF-8 无 BOM，原子写）。
+  · Ctrl+F 功能菜单（查找/替换/插入/选项）；内嵌查找条 Enter 下一处、Ctrl+Enter 应用行筛选。
+  · 繁体转简体：编辑 → 繁体转简体… 或 Ctrl+F 替换页「繁体→简体…」；全部文本列 + 筛选可见行，预览（仅原值/新值）后写入；LCMapString 转换。
+  · Shift+A 非模态选图窗；Shift+P 物品预览；与 _Icon / _IconIndex 联动。
+  · 行选择多选：双击选图窗格位批量写回相同 _Icon/_IconIndex（图集以当前格行为准；块选择仍单行；Undo 一批）。
+  · 多开：MainForm IMessageFilter + WM_ACTIVATEAPP 管理全局热键注册，避免跨实例误触。
+  · 选图/SPF：SpfPngArchive、SpfIconIndexCache、IconAtlasBitmapCache、IconAtlasDecodeHelper；选项「选图性能」写 editor-settings.json。
+  · 批量插入：预览、仅可见行、布尔列规则；状态在 filter-tool-state.json。
+  · 解码：GBK/CP949/UTF-8 三候选 + UTF-8 错位链（选项页「解码」；无诊断 UI）。
+  · B1 修改记录：视图「修改记录」/ Alt+S 高亮已改格；悬停原值；Alt+Z 单格还原；Ctrl+S 不清记录；关闭可写 sidecar；选项「项目」自动保存。
+  · 建议路线 ①–⑦、A1–A3 已完成；A4（搜索/最近/收藏）已撤回；选图改为 SPF 离散图集序号（见 [选图]，本地已验收）。
+
+[配置]
+  %LocalAppData%\LdtEditor\
+  editor-settings.json — 解码、存盘编码、SPF、autoPersistModificationRecords、modificationTrackerVisible、公告 URL 等（选图性能项仅 JSON 默认，选项页已隐藏）
+  change-records\*.json — 按 LDT 路径哈希的修改记录 sidecar（identity: 路径/大小/mtime）
+  filter-tool-state.json — 功能菜单位置、查找/替换/插入状态、批量插入参数
+  recent-files.json — 最近与 Pinned 路径
+
+[主程序 Program.cs / FilterToolForm]
+  Ctrl+F 查找 | 替换 | 插入 | 选项；底栏「执行查找」「清除条件」仅查找页显示。
+  替换页「繁体→简体…」：LdtChineseScriptHelper（kernel32 LCMapString + LCMAP_SIMPLIFIED_CHINESE）转换全部文本列可见行，ReplacePreviewForm 仅原值/新值预览写回。
+  编辑 → 繁体转简体… 同上。
+  Shift+P 预览；Shift+A 选图；选图窗打开时状态栏可显示「批量 N 行」。新开 LDT 后清空筛选词再 SyncFilterColumns。
+  表格 VirtualMode + 可见行筛选；保存 BuildPatchedTypedFile，可选 .bak；修改记录 sidecar 见 %LocalAppData%\LdtEditor\change-records\。
+  插入：批量预览、仅筛选可见行、布尔列规则可配。替换：须先预览（可锁「直接」）。
+  功能菜单拖移 ClampFilterToolFormToMainForm，锁在主窗屏幕范围内。
+
+[选图窗 IconAtlasPickerForm]（2026-05-25 本地验收通过；2026-05-25 多选批量写回）
+  非模态；主表换行自动刷新；双击格 _onApply 写回不关窗；Esc / 窗内 Shift+A 关闭。
+  行选择多选（≥2 行）：双击图集格将同一 _Icon/_IconIndex 写回全部选中行；图集解析以主表 CurrentCell 行为准；状态栏提示「批量 N 行」。块选择模式仍只写绑定行。Undo 整批一步。
+  顶栏：「图集序号：」+ ComboBox（仅 SPF 名索引或 DATA\GLOBALRES 中存在的后缀；编号可不连续，如 01→05 跳过 02–04）。
+  滚轮悬停下拉可前后切换序号；切换保留用户所选后缀（重载时不按 _Icon%100 重置）。
+  索引：BuildLogicalNameIndex 扫描内嵌 *_ICON##.PNG、ITEMETC_ICON CHINA_## 等。
+  加载：标准 *_ICON## 禁止链序下标盲加载（IsBlindChainIndexIconSheet）；ITEMCHINA/542/ITEMBATTLE_CHINA 等仍专用链扫。
+  预览：ItemIconPreviewLoader 同样 SnapSuffixToAvailable。
+  关键类型：LaTaleIconSheet.TryResolveSheet / SpfIconIndexCache.TryGetAvailableSheetSuffixes。
+
+[物品预览 ItemPreviewFloatForm]
+  双击 Status 数字 → Pending → CommitCellFromPreview（千分 Round×10）；多选禁编。
+  双击 Name/Desc → CommitStringCellFromPreview；Ctrl+Enter 确认描述。
+  头图：_Icon/_IconIndex → ItemIconPreviewLoader.TryLoadIconCell。
+  ItemPreviewColumnResolver；百分/千分见 ItemStatusTypeCatalog。启动不自动弹出。
+
+[路线 — 已完成]
+  ①–⑦（选项 SPF 行、批量插入布尔列、Status 内联、文档/L6 产品向、选图性能、UTF-8 解码链）— 均已实施。
+  A1 验证收口 — L2-2 含 EFFICE 已登记；L2-3 冲突模拟仍待查。
+  A2 解码可观测性 — 已移除诊断 UI（2026-05-26）；解析仍支持 GBK/CP949/UTF-8 选项。
+  A3 预览 Name/Desc 内联 — CommitStringCellFromPreview + Undo。
+  A4 选图搜索/最近/收藏 — 已撤回（2026-05-25c）；现方案为 SPF 离散图集序号 ComboBox（见 [选图]，已验收）。若重做搜索需另立方案。
+  B1 修改记录 — 稀疏 _modChanges；CellFormatting/ToolTip；Alt+S/Alt+Z；LdtModificationRecordStore sidecar；关闭 ModificationRecordsCloseForm；选项「项目」自动保存修改记录。
+
+[路线 — 待做（详细）]
+  B2. 数据关联视图 — 轻量交叉提示（只读，逐步接入）
+      · 范围：优先围绕 item 表；按实际可解析 LDT 表逐步扩展。
+      · 提示项示例：_Icon/_IconIndex 对应图集与格位；强化状态（_Type/_SubType/_ItemLv）；分类/子类；掉落或商店引用（若表结构可解析）。
+      · 形态：预览窗侧栏、状态栏悬停、或独立只读面板均可；首版不必做全库 JOIN。
+      · 目标：从单表编辑升级到轻量数据浏览，减少跨表人工对照。
+
+  B3. 发布维护
+      · GitHub Releases 或固定下载入口文档化；publish-release.ps1 产物与 README 版本号一致。
+      · 选项「公告 URL」拉取内容的格式约定（版本号、变更条目）与帮助页展示对齐。
+      · 便携包解压后版本核对（exe 属性 / 关于对话框 / README）。
+      · 代码签名：按公开分发需求再评估，非阻塞小圈首发。
+      · 目标：降低外部分发与用户升级摩擦。
+
+  C1. 机翻独立立项（先文档，不写进核心编辑器）
+      · 交付物：设计文档 — API 供应商选型、请求/响应格式、速率与费用。
+      · 隐私：哪些列可送出、脱敏规则、日志是否落盘、用户同意与开关。
+      · 产品：离线/联网模式、缓存位置与 TTL、人工确认后再写回 LDT（禁止静默批量机翻写盘）。
+      · 目标：避免外部服务与用户数据风险混入 LdtEditor 主程序；实现另仓库或可选插件。
+
+  C2. 自动化回归 — ldt-roundtrip 样本集
+      · 扩展 CLI ldt-roundtrip：对小样本 corpus 批量 round-trip（读 → 内存改或无改 → 写 → 再读比对）。
+      · 覆盖：GBK / CP949 / UTF-8 各至少 1 个样例；Typed 列偏移；保存前 .bak；替换路径、插入路径（若可脚本化）。
+      · 接入：本地 scripts 或 CI 可选 job；失败时输出 diff 摘要。
+      · 目标：后续 UI 功能迭代不破坏 LDT 文件格式与编码。
+
+[已知问题 — 待查]
+  L2-3：热键冲突下「主窗有焦点仍不响应」待查（L2_VERIFICATION.md）。
+  dotnet format 部分 whitespace 为仓库遗留。
+
+[CLI] ldt-probe-columns | ldt-export-items | ldt-roundtrip | spf-probe [path.spf]
+
+[代码入口] Program.cs · LdtModificationRecordStore.cs · UserReadmeHtmlForm.cs · ItemPreviewFloatForm.cs · LaTaleIconSheet.cs · IconAtlasPickerForm.cs（含 SpfIconIndexCache）· SpfPngArchive.cs
+
+[构建] net10 WinForms + Microsoft.Web.WebView2：NuGet Common.targets 对 net5+ 会同时引用 Wpf.dll，引发 MSB3277（WindowsBase 4/5）。仅 WinForms 时在 LdtEditor.csproj 用 BeforeTargets=ResolveAssemblyReferences 移除 Microsoft.Web.WebView2.Wpf 引用。
+
+================================================================================

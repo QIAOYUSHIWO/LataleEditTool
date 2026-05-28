@@ -1,0 +1,30 @@
+{
+  "summaryColumns": [
+    "_RowId",
+    "_Category",
+    "_Num",
+    "_ColorID",
+    "_Name",
+    "_Description",
+    "_Use_Type",
+    "_Icon",
+    "_IconIndex",
+    "_GamePrice",
+    "_CashPrice",
+    "_CashCheck",
+    "_RareLimit",
+    "_Type",
+    "_SubType",
+    "_ItemLv",
+    "_ItemLvValue",
+    "_SetID"
+  ],
+  "includeRawColumns": [
+    "_OptionID1",
+    "_OptionID2",
+    "_OptionID3",
+    "_OptionID4",
+    "_EnchantAllow",
+    "_Equip_Potential"
+  ]
+}

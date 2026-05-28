@@ -1,0 +1,6 @@
+*.sh text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+.agent/** text eol=lf
+.scale/** text eol=lf
+scripts/** text eol=lf
